@@ -1,2 +1,3 @@
 # defold-worldmap
-A worldmap tool that loads in SHP files and displays them.
+A Defold world map viewer using ShapeLib to load in SHP files
+
