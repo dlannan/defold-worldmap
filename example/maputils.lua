@@ -17,7 +17,7 @@ local function CreateProj()
         proj.XPixelsToDegreesRatio = pixelGlobeSize / 360.0
         proj.YPixelsToRadiansRatio = pixelGlobeSize / (2.0 * math.pi)
         local halfPixelGlobeSize = (pixelGlobeSize / 2.0)
-        proj.PixelGlobeCenter = { X=halfPixelGlobeSize, Y=halfPixelGlobeSize }
+        --proj.PixelGlobeCenter = { X=halfPixelGlobeSize, Y=halfPixelGlobeSize }
     end
 
     proj.FromCoordinatesToPixel = function(coordinates)

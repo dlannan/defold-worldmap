@@ -67,6 +67,13 @@ local function startSim(self)
 	self.diversity_hist = {}
 
 	self.agent = { id = 0, r = 255, g = 255, b = 255 }
+
+	self.proj = proj.create()
+	self.proj.GoogleMapsAPIProjection(self.iniTable.lookup["scale"].value)
+	self.proj.PixelGlobeCenter = {X=self.iniTable.lookup["positionX"].value, Y=self.iniTable.lookup["positionY"].value}	
+
+	drawpixels.fill(self.buffer_info, 0, 0, 0, 255)
+	self.changed = true
 end
 
 --------------------------------------------------------------------------------
@@ -126,17 +133,14 @@ function init(self)
 	-- self.fonts["BoldItalic"] = imgui.font_add_ttf_data(bolditalic_data, #bolditalic_data, fontsize, fontsizebase)
 
 	startSim(self)
-	-- pprint(self.iniTable)
+	pprint(self.iniTable)
 	-- 		inifile.save('data/biosim4.ini', self.iniTable)
-
-	self.proj = proj.create()
-	self.proj.GoogleMapsAPIProjection(1.0)
-
+	
 	--shputil.dump("data/naturalEarth/land/ne_10m_land.shp")
 	--shputil.treedump(1, 0, "data/naturalEarth/land/ne_10m_land.shx","data/naturalEarth/land/ne_10m_land.shp")
 	local land = {}
-	--shputil.treeget("data/naturalEarth/land/ne_10m_land.shx","data/naturalEarth/land/ne_10m_land.shp", land)
-	shputil.treeload("data/naturalEarth/land/ne_10m_admin_0_countries.shx", "data/naturalEarth/land/ne_10m_admin_0_countries.shp", land)
+	shputil.treeload("data/naturalEarth/land/ne_10m_land.shx","data/naturalEarth/land/ne_10m_land.shp", land)
+	--shputil.treeload("data/naturalEarth/land/ne_10m_admin_0_countries.shx", "data/naturalEarth/land/ne_10m_admin_0_countries.shp", land)
 	-- shputil.load("data/naturalEarth/land/ne_10m_admin_0_countries.shp", land)
 	self.land = land
 	--pprint(land)
@@ -256,20 +260,25 @@ local function renderShape(self, land)
 		local shapes = obj.shapes
 		for si, shape in ipairs(shapes) do 
 			local verts = shape.shape.verts
+			local rings = shape.shape.rings
+			local ringcount = shape.shape.ringcount
 
 			local ct = 0
-			local last = nil
-			for vi, vert in ipairs(verts) do 
-				if(last) then 
-					local c1 = self.proj.FromCoordinatesToPixel( { X=last[1], Y=last[2] })
-					local c2 = self.proj.FromCoordinatesToPixel( { X=vert[1], Y=vert[2] })
-					drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
-					--pprint( c1.X, c1.Y, c2.X, c2.Y )
+			for i = 0, ringcount-1 do
+
+				local last = nil
+				for vi = rings[i*2+1], rings[i*2+1] + rings[i*2+2]-1, 1 do
+					local vert = verts[vi + 1]
+					if(last) then 
+						local c1 = self.proj.FromCoordinatesToPixel( { X=last[1], Y=last[2] })
+						local c2 = self.proj.FromCoordinatesToPixel( { X=vert[1], Y=vert[2] })
+						drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
+						--pprint( c1.X, c1.Y, c2.X, c2.Y )
+					end
+					last = vert
+					ct = ct + 1
 				end
-				last = vert
-				ct = ct + 1
 			end 
-			print("Vert Count: "..ct)
 		end	
 
 		if(obj.nodes) then 
@@ -342,7 +351,10 @@ function update(self, dt)
 	local flags = imgui.WINDOWFLAGS_NOMOVE
 	flags = bit.bor( flags, imgui.WINDOWFLAGS_NORESIZE )
 	flags = bit.bor( flags, imgui.WINDOWFLAGS_NOCOLLAPSE )
-	imgui.begin_window("Generation "..self.generation, true, flags)
+	imgui.begin_window("Worldmap "..self.generation, true, flags)
+
+	if(self.changed) then renderShape(self, self.land); self.changed=nil end
+	
 	local img_data = buffer.get_bytes(self.buffer_info.buffer, hash("rgba"))
 	local img = imgui.image_load_rawdata( "image1", self.buffer_info.width, self.buffer_info.height, img_data )
 	imgui.image_add(img, 596 * WINDOW_SCALE, 596 * WINDOW_SCALE)
@@ -353,9 +365,7 @@ function update(self, dt)
 	-- 	local c1 = self.proj.FromCoordinatesToPixel( {X=world[i+1], Y=world[i+3] })
 	-- 	local c2 = self.proj.FromCoordinatesToPixel( {X=world[i+2], Y=world[i+4] })
 	-- 	drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
-	-- end
-
-	renderShape(self, self.land)
+	-- end	
 	imgui.end_window()
 end
 

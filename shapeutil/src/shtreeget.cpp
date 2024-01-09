@@ -213,6 +213,8 @@ static void EmitShape(lua_State *L, SHPObject *psObject, const char *pszPrefix,
     lua_setfield(L, -2, "max");
     //printf(")\n");
 
+    lua_pushnumber(L, psObject->nVertices);
+    lua_setfield(L, -2, "nVertices");
     lua_newtable(L);
 
     for (int i = 0; i < psObject->nVertices; i++)
@@ -231,7 +233,26 @@ static void EmitShape(lua_State *L, SHPObject *psObject, const char *pszPrefix,
         //printf(")\n");
     }
     lua_setfield(L, -2, "verts");
+
+    lua_pushnumber(L,  psObject->nParts);
+    lua_setfield(L, -2, "ringcount");
     
+    lua_newtable(L);
+    int pidx = 1;
+    for (int i = 0; i < psObject->nParts; i++)
+    {
+        lua_pushnumber(L, psObject->panPartStart[i]);
+        lua_rawseti(L, -2, pidx++);
+        if(i < psObject->nParts-1) {
+            lua_pushnumber(L, psObject->panPartStart[i+1] - psObject->panPartStart[i]);
+            lua_rawseti(L, -2, pidx++);
+        } else {
+            lua_pushnumber(L, psObject->nParts - psObject->panPartStart[i]);
+            lua_rawseti(L, -2, pidx++);
+        }            
+    }
+    lua_setfield(L, -2, "rings");
+        
     //printf("%s)\n", pszPrefix);
 }
 
