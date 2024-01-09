@@ -72,7 +72,7 @@ local function startSim(self)
 	self.proj.GoogleMapsAPIProjection(self.iniTable.lookup["scale"].value)
 	self.proj.PixelGlobeCenter = {X=self.iniTable.lookup["positionX"].value, Y=self.iniTable.lookup["positionY"].value}	
 
-	drawpixels.fill(self.buffer_info, 0, 0, 0, 255)
+	drawpixels.fill(self.buffer_info, 0, 97, 206, 255)
 	self.changed = true
 end
 
@@ -81,6 +81,43 @@ end
 local function stopSim(self)
 
 end 
+
+--------------------------------------------------------------------------------
+
+local function iteratePolygons( self, land, polys )
+	for oi, obj in pairs(land) do 
+		local shapes = obj.shapes
+		for si, shape in ipairs(shapes) do 
+			local verts = shape.shape.verts
+			local rings = shape.shape.rings
+			local ringcount = shape.shape.ringcount
+
+			for i = 0, ringcount-1 do
+				local last = nil
+				local newpoly = {}
+				for vi = rings[i*2+1], rings[i*2+1] + rings[i*2+2]-1, 1 do
+					local vert = verts[vi + 1]
+					vert = self.proj.FromCoordinatesToPixel( { X=vert[1], Y=vert[2] } )
+					table.insert(newpoly, vert)
+				end
+				table.insert(polys, newpoly)
+			end 
+		end	
+
+		if(obj.nodes) then 
+			iteratePolygons( self, obj.nodes, polys )
+		end 
+	end
+end
+
+local function collatePolygons(self, land) 
+
+	-- Each poly has just a list of points. Then these are rendered
+	local polys = {}
+	iteratePolygons( self, land, polys )
+	self.polys = polys
+	-- shputil.print(polys)
+end	
 
 --------------------------------------------------------------------------------
 
@@ -133,7 +170,7 @@ function init(self)
 	-- self.fonts["BoldItalic"] = imgui.font_add_ttf_data(bolditalic_data, #bolditalic_data, fontsize, fontsizebase)
 
 	startSim(self)
-	pprint(self.iniTable)
+	-- pprint(self.iniTable)
 	-- 		inifile.save('data/biosim4.ini', self.iniTable)
 	
 	--shputil.dump("data/naturalEarth/land/ne_10m_land.shp")
@@ -143,6 +180,7 @@ function init(self)
 	--shputil.treeload("data/naturalEarth/land/ne_10m_admin_0_countries.shx", "data/naturalEarth/land/ne_10m_admin_0_countries.shp", land)
 	-- shputil.load("data/naturalEarth/land/ne_10m_admin_0_countries.shp", land)
 	self.land = land
+	collatePolygons(self, land)
 	--pprint(land)
 end
 
@@ -254,36 +292,21 @@ local function update_tab3(self)
 	imgui.end_child()
 end
 
-local function renderShape(self, land) 
-	
-	for oi, obj in pairs(land) do 
-		local shapes = obj.shapes
-		for si, shape in ipairs(shapes) do 
-			local verts = shape.shape.verts
-			local rings = shape.shape.rings
-			local ringcount = shape.shape.ringcount
+--------------------------------------------------------------------------------
 
-			local ct = 0
-			for i = 0, ringcount-1 do
+local function renderShapes(self) 
 
-				local last = nil
-				for vi = rings[i*2+1], rings[i*2+1] + rings[i*2+2]-1, 1 do
-					local vert = verts[vi + 1]
-					if(last) then 
-						local c1 = self.proj.FromCoordinatesToPixel( { X=last[1], Y=last[2] })
-						local c2 = self.proj.FromCoordinatesToPixel( { X=vert[1], Y=vert[2] })
-						drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
-						--pprint( c1.X, c1.Y, c2.X, c2.Y )
-					end
-					last = vert
-					ct = ct + 1
-				end
-			end 
-		end	
-
-		if(obj.nodes) then 
-			renderShape( self, obj.nodes )
-		end 
+	-- shputil.polysclear()
+	for i, poly in ipairs(self.polys) do
+	 local last = nil
+		for j, vert in ipairs(poly) do
+			if(last) then 
+				drawpixels.line(self.buffer_info, last.X, last.Y, vert.X, vert.Y, 20, 147, 27, 255, false)
+				--pprint( c1.X, c1.Y, c2.X, c2.Y )
+			end
+			last = vert
+		end
+	-- shputil.polysubmit(poly)
 	end
 end	
 
@@ -307,6 +330,7 @@ function update(self, dt)
 		inifile.save("data/worldmap.ini", self.iniTable, "worldmap")
 		stopSim(self)
 		startSim(self)
+		collatePolygons(self, self.land)
 	end
 
 	imgui.same_line(80)
@@ -353,7 +377,7 @@ function update(self, dt)
 	flags = bit.bor( flags, imgui.WINDOWFLAGS_NOCOLLAPSE )
 	imgui.begin_window("Worldmap "..self.generation, true, flags)
 
-	if(self.changed) then renderShape(self, self.land); self.changed=nil end
+	if(self.changed) then renderShapes(self); self.changed=nil end
 	
 	local img_data = buffer.get_bytes(self.buffer_info.buffer, hash("rgba"))
 	local img = imgui.image_load_rawdata( "image1", self.buffer_info.width, self.buffer_info.height, img_data )
