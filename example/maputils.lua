@@ -22,9 +22,9 @@ local function CreateProj()
 
     proj.FromCoordinatesToPixel = function(coordinates)
         
-        local x = math.floor(proj.PixelGlobeCenter.X + (coordinates.X * proj.XPixelsToDegreesRatio)+ 0.5)
+        local x =(proj.PixelGlobeCenter.X + (coordinates.X * proj.XPixelsToDegreesRatio))
         local f = math.min(math.max(math.sin(coordinates.Y * proj.RadiansToDegreesRatio),-0.9999), 0.9999)
-        local y = math.floor(proj.PixelGlobeCenter.Y + 0.5 * math.log((1.0 + f) / (1.0 - f)) * - proj.YPixelsToRadiansRatio + 0.5)
+        local y = (proj.PixelGlobeCenter.Y + 0.5 * math.log((1.0 + f) / (1.0 - f)) * - proj.YPixelsToRadiansRatio)
         return { X=x, Y=y }
     end
 

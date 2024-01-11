@@ -16,6 +16,8 @@ embedded_instances {
   "    z: 0.0\n"
   "    w: 1.0\n"
   "  }\n"
+  "  property_decls {\n"
+  "  }\n"
   "}\n"
   "embedded_components {\n"
   "  id: \"sprite\"\n"
@@ -71,6 +73,8 @@ embedded_instances {
   "    z: 0.0\n"
   "    w: 1.0\n"
   "  }\n"
+  "  property_decls {\n"
+  "  }\n"
   "}\n"
   "components {\n"
   "  id: \"gui\"\n"
@@ -85,6 +89,8 @@ embedded_instances {
   "    y: 0.0\n"
   "    z: 0.0\n"
   "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
   "  }\n"
   "}\n"
   "embedded_components {\n"
@@ -109,9 +115,9 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: 484.0
-    y: 336.0
-    z: 0.0
+    x: 6.0
+    y: 1.0
+    z: -10.0
   }
   rotation {
     x: 0.0
@@ -140,6 +146,8 @@ embedded_instances {
   "    y: 0.0\n"
   "    z: 0.0\n"
   "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
   "  }\n"
   "}\n"
   "embedded_components {\n"
@@ -177,6 +185,90 @@ embedded_instances {
   scale3 {
     x: 2.17
     y: 2.18
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "camera"
+  data: "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 1.0\\n"
+  "fov: 0.7854\\n"
+  "near_z: 0.1\\n"
+  "far_z: 1000.0\\n"
+  "auto_aspect_ratio: 1\\n"
+  "orthographic_projection: 0\\n"
+  "orthographic_zoom: 1.0\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 500.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "world"
+  data: "embedded_components {\n"
+  "  id: \"genmesh\"\n"
+  "  type: \"mesh\"\n"
+  "  data: \"material: \\\"/builtins/materials/model.material\\\"\\n"
+  "vertices: \\\"/assets/meshes/temp.buffer\\\"\\n"
+  "textures: \\\"/assets/images/green.png\\\"\\n"
+  "primitive_type: PRIMITIVE_TRIANGLES\\n"
+  "position_stream: \\\"position\\\"\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 2.5
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
     z: 1.0
   }
 }

@@ -41,23 +41,10 @@
 class Vector2d
 {
   public:
-  Vector2d(float x,float y)
-  {
-    Set(x,y);
-  };
+  Vector2d(double x, double y):X(x), Y(y) {}
 
-  float GetX(void) const { return mX; };
-
-  float GetY(void) const { return mY; };
-
-  void  Set(float x,float y)
-  {
-    mX = x;
-    mY = y;
-  };
-  private:
-  float mX;
-  float mY;
+  double X;
+  double Y;
 };
 
 // Typedef an STL vector of vertices which are used to represent
@@ -75,14 +62,14 @@ class Triangulate
     Vector2dVector &result);
 
     // compute area of a contour/polygon
-    static float Area(const Vector2dVector &contour);
+    static double Area(const Vector2dVector &contour);
 
     // decide if point Px/Py is inside triangle defined by
     // (Ax,Ay) (Bx,By) (Cx,Cy)
-    static bool InsideTriangle(float Ax, float Ay,
-      float Bx, float By,
-      float Cx, float Cy,
-      float Px, float Py);
+    static bool InsideTriangle(double Ax, double Ay,
+      double Bx, double By,
+      double Cx, double Cy,
+      double Px, double Py);
 
 
       private:
