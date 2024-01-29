@@ -6,19 +6,24 @@
 // include the Defold SDK
 #include <dmsdk/sdk.h>
 
-#include <iostream>
+#include <vector>
 #include <sstream>
 #include <string>
+#include <array>
 #include <unordered_map>
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "shapefil.h"
-#include "triangulate.h"
+#include "triangle.h"
 
+#define STB_IMAGE_STATIC
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image.h"
+
+#define STBI_MSC_SECURE_CRT
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "stb_image_resize.h"
 
 // ---------------------------------------------------------------------------------------
 // Extern shape commands. Derived from the tools in ShapeLib
@@ -28,15 +33,19 @@ int shptreedump(int nExpandShapes, int nMaxDepth, const char *pszInputIndexFilen
 int shpget(lua_State *L, bool bValidate, bool bHeaderOnly, int nPrecision, const char *shpfile);
 int shptreeget(lua_State *L, const char *pszInputIndexFilename, const char *pszTargetFile);
 
+const double UPSCALE = 1.0;
+const double DOWNSCALE = 1 / 10000.0;
+
 // ---------------------------------------------------------------------------------------
 // List of polygons that have been converted from shape polygons
 
-static std::vector<Vector2dVector>    polygons;
+typedef struct std::vector<Point> polylist;
+static std::vector<polylist>    polygons;
 
 static int TriangulatePolygon(lua_State* L)
 {
     // Incoming table is a poly - list of verts
-    DM_LUA_STACK_CHECK(L, 1);
+    //DM_LUA_STACK_CHECK(L, 1);
     int polyid = (int)luaL_checknumber(L, 1);   // poly id (lookup into polygons)
     luaL_checktype(L, 2, LUA_TTABLE);   // indices table
     luaL_checktype(L, 3, LUA_TTABLE);   // verts table
@@ -44,33 +53,19 @@ static int TriangulatePolygon(lua_State* L)
     int indidx = (int)lua_objlen(L, 2)+1;
     int vertidx = (int)lua_objlen(L, 3)+1;
 
-    Vector2dVector poly = polygons[polyid];
-    // Vector2dVector a;
+    polylist poly = polygons[polyid];    
 
-    // a.push_back( Vector2d(0,6));
-    // a.push_back( Vector2d(0,0));
-    // a.push_back( Vector2d(3,0));
-    // a.push_back( Vector2d(4,1));
-    // a.push_back( Vector2d(6,1));
-    // a.push_back( Vector2d(8,0));
-    // a.push_back( Vector2d(12,0));
-    // a.push_back( Vector2d(13,2));
-    // a.push_back( Vector2d(8,2));
-    // a.push_back( Vector2d(8,4));
-    // a.push_back( Vector2d(11,4));
-    // a.push_back( Vector2d(11,6));
-    // a.push_back( Vector2d(6,6));
-    // a.push_back( Vector2d(4,3));
-    // a.push_back( Vector2d(2,6));
+    MooPolygon  moo;
+    for(int i=0; i<poly.size(); i++)
+        moo.push(poly[i]);
 
-    // allocate an STL vector to hold the answer.
+    printf("Points: %d\n", (int)poly.size()/2);
 
-    Vector2dVector result;
+    std::vector<struct Point> res = moo.triangulate();
 
-    //  Invoke the triangulator to triangulate this polygon.
-    Triangulate::Process(poly,result);
-
-    int tcount = poly.size();
+    printf("Triangles: %d\n",(int)res.size()/3);
+ 
+    int tcount = res.size()/3;    
 
     if(tcount > 0) {
         printf("Indices: %d        Verts: %d\n", indidx, vertidx);
@@ -81,18 +76,141 @@ static int TriangulatePolygon(lua_State* L)
             lua_rawseti(L, 2, indidx++); 
         }
         
-        for (int i=0; i<tcount; i++)
+        for(std::size_t i = 0; i < res.size(); i++) 
         {
-            lua_pushnumber(L, poly[i].X);
+            lua_pushnumber(L, res[i].x * DOWNSCALE);
             lua_rawseti(L, 3, vertidx++); 
-            lua_pushnumber(L, poly[i].Y);
+            lua_pushnumber(L, res[i].y * DOWNSCALE);
             lua_rawseti(L, 3, vertidx++); 
             lua_pushnumber(L, 0.0);
             lua_rawseti(L, 3, vertidx++); 
         }
     }
+
     lua_pushnumber(L, tcount);
     return 1;
+}
+
+typedef struct vec4 {
+    union {
+        unsigned char b[4];
+        uint32_t val;
+    };
+} _vec4;
+
+float step(float a, float x)
+{
+    return x >= a;
+}
+
+// vec4 encode32(float f) {
+//     float e =5.0;
+
+//     float F = abs(f); 
+//     float Sign = step(0.0,-f);
+//     float Exponent = floor(log2(F)); 
+//     float Mantissa = (exp2(- Exponent) * F);
+//     Exponent = floor(log2(F) + 127.0) + floor(log2(Mantissa));
+//     vec4 rgba;
+//     rgba.b[0] = (unsigned char)(128.0 * Sign  + floor(Exponent*exp2(-1.0)));
+//     rgba.b[1] = (unsigned char)(128.0 * fmod(Exponent, 2.0) + fmod(floor(Mantissa*128.0), 128.0));  
+//     rgba.b[2] = (unsigned char)(floor( fmod(floor(Mantissa*exp2(23.0 -8.0)), exp2(8.0))));
+//     rgba.b[3] = (unsigned char)(floor(exp2(23.0)* fmod(Mantissa, exp2(-15.0))));
+//     return rgba;
+// }
+
+float fract(float x)
+{
+    return(x - floor(x));
+}
+
+float shift_right (float v, float amt) { 
+    v = floor(v) + 0.5; 
+    return floor(v / exp2(amt)); 
+}
+
+float shift_left (float v, float amt) { 
+    return floor(v * exp2(amt) + 0.5); 
+}
+
+float mask_last (float v, float bits) { 
+    return fmod(v, shift_left(1.0, bits)); 
+}
+
+float extract_bits (float num, float from, float to) { 
+    from = floor(from + 0.5); to = floor(to + 0.5); 
+    return mask_last(shift_right(num, from), to - from); 
+}
+
+// uint32_t encode32 (float val) { 
+//     if (val == 0.0) return 0; 
+//     float sign = val > 0.0 ? 0.0 : 1.0; 
+//     val = fabs(val); 
+//     float exponent = floor(log2(val)); 
+//     float biased_exponent = exponent + 127.0; 
+//     float fraction = ((val / exp2(exponent)) - 1.0) * 8388608.0; 
+//     float t = biased_exponent / 2.0; 
+//     float last_bit_of_biased_exponent = fract(t) * 2.0; 
+//     float remaining_bits_of_biased_exponent = floor(t); 
+//     vec4 rgba;
+//     rgba.b[0] = (unsigned char)extract_bits(fraction, 0.0, 8.0);// / 255.0; 
+//     rgba.b[1] = (unsigned char)extract_bits(fraction, 8.0, 16.0);// / 255.0; 
+//     rgba.b[2] = (unsigned char)(last_bit_of_biased_exponent * 128.0 + extract_bits(fraction, 16.0, 23.0));// / 255.0; 
+//     rgba.b[3] = (unsigned char)(sign * 128.0 + remaining_bits_of_biased_exponent);// / 255.0; 
+//     return rgba.val; 
+// }
+
+int32_t encode32 (float val) { 
+    return (int32_t)(val * 10000.0);
+}
+
+static int savepolystoimage( lua_State *L )
+{
+    DM_LUA_STACK_CHECK(L, 0);
+    const char * filename = luaL_checkstring(L, 1);
+    int polyid = luaL_checkinteger(L, 2);
+    int dim = luaL_checkinteger(L, 3);
+
+    // calc total values needed
+    int vertcount = 1;
+    for (int p; p<polygons.size(); p++) {
+        vertcount++;
+        vertcount+= polygons[p].size() * 2;
+    }
+    printf("vertcount: %d   dim * dim: %d\n", vertcount, dim * dim);
+    while(vertcount > dim * dim) {
+        printf("Dim too small. Upsizing from: %d to %d\n", dim, dim + dim);
+        dim = dim + dim;
+    }
+
+    int imgsize = dim * dim;
+    int32_t *pdata = (int32_t *)malloc( imgsize * 4 );
+    memset(pdata, 0, imgsize * 4 );
+
+    int i = 0;
+    pdata[i++] = encode32((float)polygons.size());
+    
+    for (int p=0; p<1; p++) {
+
+        polylist poly = polygons[p];
+        // Num verts in poly
+        pdata[i++] = encode32((float)poly.size());
+        printf("Poly: %d  Size: %d\n", p, (int)poly.size());
+
+        for(int q=0; q<poly.size(); q++)
+        {
+            printf("X: %f  Y: %f\n", poly[q].x, poly[q].y);
+            pdata[i++] = encode32(poly[q].x);
+            pdata[i++] = encode32(poly[q].y);
+            //pdata[i++] = 0.0f;
+        }
+    }
+
+    // if CHANNEL_NUM is 4, you can use alpha channel in png
+    stbi_write_png(filename, dim, dim, STBI_rgb_alpha, (unsigned char *)pdata, dim * 4);
+    free(pdata);
+
+    return 0;
 }
 
 static int ShapeDump(lua_State* L)
@@ -187,8 +305,8 @@ static int ShapeSubmitPolygon(lua_State *L)
     // List of verts for a polygon
     luaL_checktype(L, 1, LUA_TTABLE);
 
-    Vector2dVector poly;
     int vertcount = (int)lua_objlen(L, 1);
+    polylist poly;
 
     int i = 0;
     // Table of list of verts
@@ -211,8 +329,17 @@ static int ShapeSubmitPolygon(lua_State *L)
 
         /* removes 'value'; keeps 'key' for next iteration */
         lua_pop(L, 1);
-        poly.push_back(Vector2d(x,y));
+        
+        poly.push_back( Point(x * UPSCALE, y * UPSCALE) );
     }
+
+    poly.clear();
+    poly.push_back(Point(.77, 0.0));
+    poly.push_back(Point(0.15, 0.0625));
+    poly.push_back(Point(-0.5, 0.0625-0.7));
+    poly.push_back(Point(-0.63, 0.0));
+    poly.push_back(Point(-0.15, -0.0625));
+    poly.push_back(Point(0.5, -0.0625));
 
     // if(poly.size() > 0) poly.push_back(poly[0]);
     
@@ -243,6 +370,7 @@ static const luaL_reg Module_methods[] =
     {"polysclear", ShapeClearPolygons },
     {"polygontri", TriangulatePolygon },
     {"print", PrintTable },
+    {"polysave", savepolystoimage },
     {0, 0}
 };
 

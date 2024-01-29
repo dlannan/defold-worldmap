@@ -41,8 +41,8 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: -393.0
-    y: 340.0
+    x: -900.0
+    y: 0.0
     z: -5.0
   }
   rotation {
@@ -172,8 +172,8 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: -390.0
-    y: 341.0
+    x: -900.0
+    y: 0.0
     z: -5.0
   }
   rotation {
@@ -215,9 +215,9 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: 0.0
+    x: -70.0
     y: 0.0
-    z: 500.0
+    z: 900.0
   }
   rotation {
     x: 0.0
@@ -232,15 +232,17 @@ embedded_instances {
   }
 }
 embedded_instances {
-  id: "world"
+  id: "worldmap"
   data: "embedded_components {\n"
-  "  id: \"genmesh\"\n"
-  "  type: \"mesh\"\n"
-  "  data: \"material: \\\"/builtins/materials/model.material\\\"\\n"
-  "vertices: \\\"/assets/meshes/temp.buffer\\\"\\n"
-  "textures: \\\"/assets/images/green.png\\\"\\n"
-  "primitive_type: PRIMITIVE_TRIANGLES\\n"
-  "position_stream: \\\"position\\\"\\n"
+  "  id: \"model\"\n"
+  "  type: \"model\"\n"
+  "  data: \"mesh: \\\"/builtins/assets/meshes/quad_2x2.dae\\\"\\n"
+  "material: \\\"/assets/materials/polyshader.material\\\"\\n"
+  "textures: \\\"/assets/polys/worldmap.png\\\"\\n"
+  "skeleton: \\\"\\\"\\n"
+  "animations: \\\"\\\"\\n"
+  "default_animation: \\\"\\\"\\n"
+  "name: \\\"{{NAME}}\\\"\\n"
   "\"\n"
   "  position {\n"
   "    x: 0.0\n"
@@ -256,9 +258,9 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: 2.5
+    x: 100.0
     y: 0.0
-    z: 0.0
+    z: 100.0
   }
   rotation {
     x: 0.0
@@ -267,8 +269,8 @@ embedded_instances {
     w: 1.0
   }
   scale3 {
-    x: 1.0
-    y: 1.0
-    z: 1.0
+    x: 300.0
+    y: 300.0
+    z: 300.0
   }
 }

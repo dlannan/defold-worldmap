@@ -124,7 +124,9 @@ local function collatePolygons(self, land)
 		local polyid = shputil.polysubmit(poly) 
 		table.insert(self.polyids, polyid)
 	end
+	
 	print("Polys:"..#self.polyids)
+	shputil.polysave("assets/polys/worldmap.png", 0, 1024)
 end	
 
 --------------------------------------------------------------------------------
@@ -137,10 +139,9 @@ function generateMesh(self)
 	local indices = {}
 	local verts = {} 
 
-	for i = 1, #self.polyids do
+	for i = 2, 2 do
 		shputil.polygontri(self.polyids[i], indices, verts)
 	end
-
 	return indices, verts
 end
 
@@ -214,9 +215,9 @@ function init(self)
 	-- rotate the cube
 	-- go.animate("/world", "euler.z", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 6)
 	-- go.animate("/world", "euler.x", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 9)
-	go.animate("/world", "euler.y", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 12)
+	--go.animate("/world", "euler.y", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 12)
 
-	geom:makeMesh("/world#genmesh", generateMesh(self) )
+	-- geom:makeMesh("/world#genmesh", generateMesh(self) )
 	-- geom:GenerateBlock("/world#genmesh", 0.5, 0.5, 1 )
 end
 

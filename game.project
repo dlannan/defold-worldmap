@@ -8,11 +8,14 @@ shared_state = 1
 [display]
 width = 1440
 height = 960
-display_profiles = /example/default.display_profilesc
+display_profiles = /builtins/render/default.display_profilesc
+dynamic_orientation = 0
+high_dpi = 1
 
 [project]
 title = worldmap
 custom_resources = example
+compress_archive = 0
 dependencies#0 = https://github.com/AGulev/drawpixels/archive/master.zip
 dependencies#1 = https://github.com/dlannan/extension-imgui/archive/master.zip
 
@@ -21,4 +24,10 @@ include_dirs = biosim
 
 [input]
 game_binding = /imgui/bindings/imgui.input_bindingc
+
+[graphics]
+default_texture_min_filter = nearest
+default_texture_mag_filter = nearest
+texture_profiles = /example/default.texture_profiles
+verify_graphics_calls = 0
 
