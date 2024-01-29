@@ -33,9 +33,6 @@ int shptreedump(int nExpandShapes, int nMaxDepth, const char *pszInputIndexFilen
 int shpget(lua_State *L, bool bValidate, bool bHeaderOnly, int nPrecision, const char *shpfile);
 int shptreeget(lua_State *L, const char *pszInputIndexFilename, const char *pszTargetFile);
 
-const double UPSCALE = 1.0;
-const double DOWNSCALE = 1 / 10000.0;
-
 // ---------------------------------------------------------------------------------------
 // List of polygons that have been converted from shape polygons
 
@@ -78,9 +75,9 @@ static int TriangulatePolygon(lua_State* L)
         
         for(std::size_t i = 0; i < res.size(); i++) 
         {
-            lua_pushnumber(L, res[i].x * DOWNSCALE);
+            lua_pushnumber(L, res[i].x);
             lua_rawseti(L, 3, vertidx++); 
-            lua_pushnumber(L, res[i].y * DOWNSCALE);
+            lua_pushnumber(L, res[i].y);
             lua_rawseti(L, 3, vertidx++); 
             lua_pushnumber(L, 0.0);
             lua_rawseti(L, 3, vertidx++); 
@@ -161,7 +158,7 @@ float extract_bits (float num, float from, float to) {
 // }
 
 int32_t encode32 (float val) { 
-    return (int32_t)(val * 10000.0);
+    return (int32_t)(val * 1000);
 }
 
 static int savepolystoimage( lua_State *L )
@@ -188,9 +185,10 @@ static int savepolystoimage( lua_State *L )
     memset(pdata, 0, imgsize * 4 );
 
     int i = 0;
-    pdata[i++] = encode32((float)polygons.size());
+    int pcount = polygons.size();
+    pdata[i++] = encode32((float)pcount);
     
-    for (int p=0; p<1; p++) {
+    for (int p=0; p<pcount; p++) {
 
         polylist poly = polygons[p];
         // Num verts in poly
@@ -199,7 +197,7 @@ static int savepolystoimage( lua_State *L )
 
         for(int q=0; q<poly.size(); q++)
         {
-            printf("X: %f  Y: %f\n", poly[q].x, poly[q].y);
+            //printf("X: %f  Y: %f\n", poly[q].x, poly[q].y);
             pdata[i++] = encode32(poly[q].x);
             pdata[i++] = encode32(poly[q].y);
             //pdata[i++] = 0.0f;
@@ -330,18 +328,18 @@ static int ShapeSubmitPolygon(lua_State *L)
         /* removes 'value'; keeps 'key' for next iteration */
         lua_pop(L, 1);
         
-        poly.push_back( Point(x * UPSCALE, y * UPSCALE) );
+        poly.push_back( Point(x, y) );
     }
 
-    poly.clear();
-    poly.push_back(Point(.77, 0.0));
-    poly.push_back(Point(0.15, 0.0625));
-    poly.push_back(Point(-0.5, 0.0625-0.7));
-    poly.push_back(Point(-0.63, 0.0));
-    poly.push_back(Point(-0.15, -0.0625));
-    poly.push_back(Point(0.5, -0.0625));
+    // poly.clear();
+    // poly.push_back(Point(.77, 0.0));
+    // poly.push_back(Point(0.15, 0.0625));
+    // poly.push_back(Point(-0.5, -0.6375));
+    // poly.push_back(Point(-0.63, 0.0));
+    // poly.push_back(Point(-0.15, -0.0625));
+    // poly.push_back(Point(0.5, -0.0625));
 
-    // if(poly.size() > 0) poly.push_back(poly[0]);
+    //if(poly.size() > 0) poly.push_back(poly[0]);
     
     polygons.push_back(poly);
     lua_pushnumber(L, polygons.size()-1);
