@@ -1,11 +1,12 @@
-varying mediump vec4 position;
-varying highp vec2 var_texcoord0;
 
-uniform mediump sampler2D tex0;
+varying vec4 position;
+varying vec2 var_texcoord0;
 
-const highp vec2 pixeluv = vec2(0.0009765625, 0.0009765625);
-const highp vec2 pixelhalf = vec2(0.00048828125, 0.00048828125);
-const highp float scale = 1.0/10000.0;
+uniform sampler2D tex0;
+
+const vec2 pixeluv = vec2(0.0009765625, 0.0009765625);
+const vec2 pixelhalf = vec2(0.00048828125, 0.00048828125);
+const float scale = 1.0/10000.0;
 
 float DigitBin( const int x )
 {
@@ -49,7 +50,7 @@ mediump float decode_float( vec4 val ) {
 
 	mediump float sign = 1.0;
 	//if( a > 254.0 ) { a -= 255.0; sign = -1.0; }
-	unsigned int num = unsigned int(r) + unsigned int(g * 256.0) + unsigned int(b * 256.0 * 256.0) + unsigned int(a * 256.0 * 256.0 * 256.0);
+	int num = int(r) +  int(g * 256.0) + int(b * 256.0 * 256.0) + int(a * 256.0 * 256.0 * 256.0);
 	return int(num) * 0.001;
 }
 

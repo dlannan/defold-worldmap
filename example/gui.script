@@ -217,8 +217,8 @@ function init(self)
 	-- go.animate("/world", "euler.x", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 9)
 	--go.animate("/world", "euler.y", go.PLAYBACK_LOOP_FORWARD, 360, go.EASING_INOUTQUAD, 12)
 
-	-- geom:makeMesh("/world#genmesh", generateMesh(self) )
-	-- geom:GenerateBlock("/world#genmesh", 0.5, 0.5, 1 )
+	--geom:makeMesh("/world#genmesh", generateMesh(self) )
+	--geom:GenerateBlock("/world#genmesh", 0.5, 0.5, 1 )
 end
 
 --------------------------------------------------------------------------------
@@ -406,29 +406,29 @@ function update(self, dt)
 	imgui.end_window()
 
 		
-	-- imgui.set_next_window_pos( 340 * WINDOW_SCALE, 5 )
-	-- imgui.set_next_window_size(615 * WINDOW_SCALE, 630 * WINDOW_SCALE)
+	imgui.set_next_window_pos( 340 * WINDOW_SCALE, 5 )
+	imgui.set_next_window_size(615 * WINDOW_SCALE, 630 * WINDOW_SCALE)
 
-	-- local flags = imgui.WINDOWFLAGS_NOMOVE
-	-- flags = bit.bor( flags, imgui.WINDOWFLAGS_NORESIZE )
-	-- flags = bit.bor( flags, imgui.WINDOWFLAGS_NOCOLLAPSE )
-	-- imgui.begin_window("Worldmap "..self.generation, true, flags)
+	local flags = imgui.WINDOWFLAGS_NOMOVE
+	flags = bit.bor( flags, imgui.WINDOWFLAGS_NORESIZE )
+	flags = bit.bor( flags, imgui.WINDOWFLAGS_NOCOLLAPSE )
+	imgui.begin_window("Worldmap "..self.generation, true, flags)
 
-	-- if(self.changed) then renderShapes(self); self.changed=nil end
+	if(self.changed) then renderShapes(self); self.changed=nil end
 	
-	-- local img_data = buffer.get_bytes(self.buffer_info.buffer, hash("rgba"))
-	-- local img = imgui.image_load_rawdata( "image1", self.buffer_info.width, self.buffer_info.height, img_data )
-	-- imgui.image_add(img, 596 * WINDOW_SCALE, 596 * WINDOW_SCALE)
+	local img_data = buffer.get_bytes(self.buffer_info.buffer, hash("rgba"))
+	local img = imgui.image_load_rawdata( "image1", self.buffer_info.width, self.buffer_info.height, img_data )
+	imgui.image_add(img, 596 * WINDOW_SCALE, 596 * WINDOW_SCALE)
 
-	-- -- local count = #world-1
-	-- -- for i = 1, count, 5 do
-	-- -- 	local id = world[i]
-	-- -- 	local c1 = self.proj.FromCoordinatesToPixel( {X=world[i+1], Y=world[i+3] })
-	-- -- 	local c2 = self.proj.FromCoordinatesToPixel( {X=world[i+2], Y=world[i+4] })
-	-- -- 	drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
-	-- -- end	
-	-- renderShapes(self)
-	-- imgui.end_window()
+	-- local count = #world-1
+	-- for i = 1, count, 5 do
+	-- 	local id = world[i]
+	-- 	local c1 = self.proj.FromCoordinatesToPixel( {X=world[i+1], Y=world[i+3] })
+	-- 	local c2 = self.proj.FromCoordinatesToPixel( {X=world[i+2], Y=world[i+4] })
+	-- 	drawpixels.line(self.buffer_info, c1.X, c1.Y, c2.X, c2.Y, 255, 255, 255, 255, false)
+	-- end	
+	renderShapes(self)
+	imgui.end_window()
 end
 
 --------------------------------------------------------------------------------
